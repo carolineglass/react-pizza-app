@@ -1,9 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Pizza from "./Pizza";
 
-export default function Order() {
+const intl = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+});
+
+const Order = () => {
   const [pizzaType, setPizzaType] = useState("pepperoni");
   const [pizzaSize, setPizzaSize] = useState("M");
+  const [pizzaTypes, setPizzaTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  let price, selectedPizza;
+
+  if (!loading) {
+    selectedPizza = pizzaTypes.find((pizza) => pizza.id === pizzaType);
+    price = intl.format(selectedPizza?.sizes[pizzaSize] || 0);
+  }
+
+  useEffect(() => {
+    fetchPizzaTypes();
+  }, []);
+
+  async function fetchPizzaTypes() {
+    const pizzasRes = await fetch("/api/pizzas");
+    const pizzasJson = await pizzasRes.json();
+    setPizzaTypes(pizzasJson);
+    setLoading(false);
+  }
+
   return (
     <div className="order">
       <h2>Create Order</h2>
@@ -16,9 +43,11 @@ export default function Order() {
               value={pizzaType}
               onChange={(e) => setPizzaType(e.target.value)}
             >
-              <option value="pepperoni">Pepperoni</option>
-              <option value="hawaiian">Hawaiian</option>
-              <option value="big_meat">Big Meat</option>
+              {pizzaTypes.map((pizza) => (
+                <option key={pizza.id} value={pizza.id}>
+                  {pizza.name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -59,15 +88,21 @@ export default function Order() {
           </div>
           <button type="submit">Add to Cart</button>
         </div>
-        <div className="order-pizza">
-          <Pizza
-            name="pepperoni"
-            description="Mozzarella Cheese, Pepperoni"
-            image="/public/pizzas/pepperoni.webp"
-          />
-          <p>$13.37</p>
-        </div>
+        {loading ? (
+          <h1>Loading pizza</h1>
+        ) : (
+          <div className="order-pizza">
+            <Pizza
+              name={selectedPizza?.name}
+              description={selectedPizza?.description}
+              image={selectedPizza?.image}
+            />
+            <p>{price}</p>
+          </div>
+        )}
       </form>
     </div>
   );
-}
+};
+
+export default Order;
