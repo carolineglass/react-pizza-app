@@ -5,10 +5,33 @@ import useCurrency from "../hooks/useCurrency";
 import getPastOrders from "../api/getPastOrders";
 import getPastOrder from "../api/getPastOrder";
 import Modal from "../components/Modal";
+import { Link } from "@tanstack/react-router";
+import { ErrorBoundary } from "react-error-boundary";
 
 export const Route = createLazyFileRoute("/past")({
-  component: PastOrders,
+  component: ErrorBoundaryWrappedPastOrderRoutes,
 });
+
+function ErrorBoundaryWrappedPastOrderRoutes() {
+  return (
+    <ErrorBoundary
+      FallbackComponent={() => (
+        <div className="error-boundary">
+          <h2>Uh oh!</h2>
+          <p>
+            There was an error with this listing. <Link to="/">Click here</Link>{" "}
+            to back to the home page.
+          </p>
+        </div>
+      )}
+      onError={(error, errorInfo) => {
+        console.error("ErrorBoundary caught an error", error, errorInfo);
+      }}
+    >
+      <PastOrders />
+    </ErrorBoundary>
+  );
+}
 
 function PastOrders() {
   const [page, setPage] = useState(1);
