@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 export const usePizzaOfTheDay = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [pizzaOfTheDay, setPizzaOfTheDay] = useState(null);
   const [loading, setLoading] = useState(true);
 
